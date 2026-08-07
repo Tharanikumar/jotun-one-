@@ -86,6 +86,7 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
       avatarWidget = Container(
         width: 64,
         height: 64,
+        padding: const EdgeInsets.all(3),
         decoration: BoxDecoration(
           color: widget.iconBgColor,
           shape: BoxShape.circle,
@@ -93,13 +94,13 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
         child: ClipOval(
           child: Image.asset(
             widget.imagePath!,
-            width: 56,
-            height: 56,
+            width: 58,
+            height: 58,
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return PenguinAvatar(
                 type: widget.penguinType ?? PenguinType.tasks,
-                size: 56,
+                size: 58,
               );
             },
           ),
@@ -108,7 +109,7 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
     } else {
       avatarWidget = PenguinAvatar(
         type: widget.penguinType ?? PenguinType.tickets,
-        size: 56,
+        size: 64,
       );
     }
 
