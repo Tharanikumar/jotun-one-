@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
-import 'glass_card.dart';
 
 class StatCard extends StatefulWidget {
   final String title;
   final String value;
-  final IconData icon;
+  final IconData? icon;
+  final String? imagePath;
   final Color iconBgColor;
   final Color iconColor;
+  final String? badgeCount;
   final String? trend;
   final bool isPositive;
   final VoidCallback? onTap;
@@ -18,9 +18,11 @@ class StatCard extends StatefulWidget {
     super.key,
     required this.title,
     required this.value,
-    required this.icon,
+    this.icon,
+    this.imagePath,
     required this.iconBgColor,
     required this.iconColor,
+    this.badgeCount,
     this.trend,
     this.isPositive = true,
     this.onTap,
@@ -76,24 +78,75 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    Widget iconContainer = Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: widget.iconBgColor,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: ScaleTransition(
-        scale: _iconBounceAnimation,
-        child: Icon(widget.icon, color: widget.iconColor, size: 22),
-      ),
+    Widget avatarWidget;
+    if (widget.imagePath != null) {
+      avatarWidget = ClipOval(
+        child: Image.asset(
+          widget.imagePath!,
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(widget.icon ?? Icons.analytics_rounded, color: widget.iconColor, size: 28);
+          },
+        ),
+      );
+    } else {
+      avatarWidget = Icon(
+        widget.icon ?? Icons.analytics_rounded,
+        color: widget.iconColor,
+        size: 28,
+      );
+    }
+
+    Widget avatarPod = Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: widget.iconBgColor,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: ScaleTransition(
+              scale: _iconBounceAnimation,
+              child: avatarWidget,
+            ),
+          ),
+        ),
+        if (widget.badgeCount != null)
+          Positioned(
+            top: -2,
+            right: -2,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: Text(
+                widget.badgeCount!,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
 
     if (widget.heroTag != null) {
-      iconContainer = Hero(
+      avatarPod = Hero(
         tag: widget.heroTag!,
         child: Material(
           color: Colors.transparent,
-          child: iconContainer,
+          child: avatarPod,
         ),
       );
     }
@@ -110,51 +163,56 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
             child: child,
           );
         },
-        child: GlassCard(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  iconContainer,
-                  if (widget.trend != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: (widget.isPositive ? AppColors.success : AppColors.error).withAlpha(30),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            widget.isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                            size: 12,
-                            color: widget.isPositive ? AppColors.success : AppColors.error,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            widget.trend!,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: widget.isPositive ? AppColors.success : AppColors.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.borderLight, width: 1),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x0C0F172A),
+                blurRadius: 16,
+                offset: Offset(0, 4),
               ),
-              const SizedBox(height: 16),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              avatarPod,
+              const SizedBox(height: 12),
               Text(
                 widget.value,
-                style: AppTypography.displayMedium,
+                style: TextStyle(
+                  color: widget.iconColor,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 4),
               Text(
                 widget.title,
-                style: AppTypography.bodySmall,
+                style: const TextStyle(
+                  color: Color(0xFF1E293B),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: 24,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: widget.iconColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ],
           ),
