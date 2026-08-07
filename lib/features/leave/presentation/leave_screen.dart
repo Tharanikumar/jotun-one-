@@ -54,9 +54,15 @@ class _LeaveScreenState extends State<LeaveScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Leave Type',
-                    style: AppTypography.labelMedium.copyWith(color: AppColors.textPrimary),
+                  Row(
+                    children: [
+                      Text(
+                        'Leave Type',
+                        style: AppTypography.labelMedium.copyWith(color: AppColors.textPrimary),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('*', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 14)),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
@@ -82,18 +88,21 @@ class _LeaveScreenState extends State<LeaveScreen> {
                     label: 'From Date',
                     controller: _fromDateController,
                     prefixIcon: Icons.calendar_today_rounded,
+                    isRequired: true,
                   ),
                   const SizedBox(height: 20),
                   CustomTextField(
                     label: 'To Date',
                     controller: _toDateController,
                     prefixIcon: Icons.calendar_today_rounded,
+                    isRequired: true,
                   ),
                   const SizedBox(height: 20),
                   CustomTextField(
                     label: 'Reason',
                     controller: _reasonController,
                     maxLines: 3,
+                    isRequired: true,
                   ),
                   const SizedBox(height: 20),
                   Text(

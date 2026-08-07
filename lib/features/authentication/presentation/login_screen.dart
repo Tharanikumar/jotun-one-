@@ -77,6 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _emailController,
                         prefixIcon: Icons.email_rounded,
                         keyboardType: TextInputType.emailAddress,
+                        isRequired: true,
                         validator: (val) => val == null || val.isEmpty ? 'Please enter your email' : null,
                       ),
                       const SizedBox(height: 20),
@@ -86,6 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         prefixIcon: Icons.lock_rounded,
+                        isRequired: true,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_rounded : Icons.visibility_off_rounded,
