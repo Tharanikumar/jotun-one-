@@ -144,6 +144,7 @@ class DashboardScreen extends StatelessWidget {
                   StatCard(
                     title: 'Tickets',
                     value: '03',
+                    imagePath: 'assets/images/penguin_tickets.png',
                     penguinType: PenguinType.tickets,
                     iconBgColor: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF7E22CE),
@@ -153,6 +154,7 @@ class DashboardScreen extends StatelessWidget {
                   StatCard(
                     title: 'Alerts',
                     value: '02',
+                    imagePath: 'assets/images/penguin_alerts.png',
                     penguinType: PenguinType.alerts,
                     badgeCount: '2',
                     iconBgColor: const Color(0xFFFFF7ED),
