@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/apple_dock_magnifier.dart';
+import '../../../core/widgets/penguin_avatar.dart';
 import '../../../core/widgets/quick_access_tile.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/stat_card.dart';
@@ -124,7 +125,7 @@ class DashboardScreen extends StatelessWidget {
                     title: 'Tasks',
                     value: '12',
                     imagePath: 'assets/images/penguin_tasks.png',
-                    icon: Icons.assignment_turned_in_rounded,
+                    penguinType: PenguinType.tasks,
                     iconBgColor: const Color(0xFFEFF6FF),
                     iconColor: const Color(0xFF1D4ED8),
                     heroTag: 'hero_tasks',
@@ -134,7 +135,7 @@ class DashboardScreen extends StatelessWidget {
                     title: 'Approvals',
                     value: '05',
                     imagePath: 'assets/images/penguin_approvals.png',
-                    icon: Icons.verified_user_rounded,
+                    penguinType: PenguinType.approvals,
                     iconBgColor: const Color(0xFFECFDF5),
                     iconColor: const Color(0xFF15803D),
                     heroTag: 'hero_approvals',
@@ -143,7 +144,7 @@ class DashboardScreen extends StatelessWidget {
                   StatCard(
                     title: 'Tickets',
                     value: '03',
-                    icon: Icons.confirmation_number_rounded,
+                    penguinType: PenguinType.tickets,
                     iconBgColor: const Color(0xFFF5F3FF),
                     iconColor: const Color(0xFF7E22CE),
                     heroTag: 'hero_tickets',
@@ -152,7 +153,7 @@ class DashboardScreen extends StatelessWidget {
                   StatCard(
                     title: 'Alerts',
                     value: '02',
-                    icon: Icons.notifications_active_rounded,
+                    penguinType: PenguinType.alerts,
                     badgeCount: '2',
                     iconBgColor: const Color(0xFFFFF7ED),
                     iconColor: const Color(0xFFC2410C),

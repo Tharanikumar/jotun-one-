@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import 'penguin_avatar.dart';
 
 class StatCard extends StatefulWidget {
   final String title;
   final String value;
   final IconData? icon;
   final String? imagePath;
+  final PenguinType? penguinType;
   final Color iconBgColor;
   final Color iconColor;
   final String? badgeCount;
@@ -20,6 +22,7 @@ class StatCard extends StatefulWidget {
     required this.value,
     this.icon,
     this.imagePath,
+    this.penguinType,
     required this.iconBgColor,
     required this.iconColor,
     this.badgeCount,
@@ -80,22 +83,32 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
   Widget build(BuildContext context) {
     Widget avatarWidget;
     if (widget.imagePath != null) {
-      avatarWidget = ClipOval(
-        child: Image.asset(
-          widget.imagePath!,
-          width: 56,
-          height: 56,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(widget.icon ?? Icons.analytics_rounded, color: widget.iconColor, size: 28);
-          },
+      avatarWidget = Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: widget.iconBgColor,
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: Image.asset(
+            widget.imagePath!,
+            width: 56,
+            height: 56,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return PenguinAvatar(
+                type: widget.penguinType ?? PenguinType.tasks,
+                size: 56,
+              );
+            },
+          ),
         ),
       );
     } else {
-      avatarWidget = Icon(
-        widget.icon ?? Icons.analytics_rounded,
-        color: widget.iconColor,
-        size: 28,
+      avatarWidget = PenguinAvatar(
+        type: widget.penguinType ?? PenguinType.tickets,
+        size: 56,
       );
     }
 
@@ -103,19 +116,9 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
       clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: widget.iconBgColor,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: ScaleTransition(
-              scale: _iconBounceAnimation,
-              child: avatarWidget,
-            ),
-          ),
+        ScaleTransition(
+          scale: _iconBounceAnimation,
+          child: avatarWidget,
         ),
         if (widget.badgeCount != null)
           Positioned(
