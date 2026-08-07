@@ -87,12 +87,12 @@ class JotunOneLogoWidget extends StatelessWidget {
               Container(width: 24, height: 1.5, color: AppColors.primary),
               const SizedBox(width: 8),
               Text(
-                'ONE PLATFORM. EVERY SOLUTION.',
+                'ENGINEERED SOLUTIONS',
                 style: AppTypography.labelSmall.copyWith(
                   color: AppColors.textPrimary,
                   fontSize: 10,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.5,
                 ),
               ),
               const SizedBox(width: 8),
