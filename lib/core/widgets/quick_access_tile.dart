@@ -45,21 +45,17 @@ class QuickAccessTile extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(19),
               child: imageAsset != null
-                  ? Container(
-                      color: backgroundColor,
-                      padding: const EdgeInsets.all(4),
-                      child: Image.asset(
-                        imageAsset!,
-                        width: 56,
-                        height: 56,
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: backgroundColor,
-                            child: Icon(icon, color: iconColor, size: 28),
-                          );
-                        },
-                      ),
+                  ? Image.asset(
+                      imageAsset!,
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: backgroundColor,
+                          child: Icon(icon, color: iconColor, size: 28),
+                        );
+                      },
                     )
                   : Container(
                       color: backgroundColor,
