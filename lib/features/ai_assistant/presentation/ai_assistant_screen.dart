@@ -135,7 +135,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       _isTyping = true;
     });
 
-    _scrollToBottom();
+    _scrollToLatestMessage();
 
     // Process query via intent orchestrator
     final botResponse = await _orchestrator.processMessage(text);
@@ -145,7 +145,7 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         _isTyping = false;
         _messages.add(botResponse);
       });
-      _scrollToBottom();
+      _scrollToLatestMessage();
     }
   }
 
@@ -154,16 +154,19 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     setState(() {
       _messages.add(response);
     });
-    _scrollToBottom();
+    _scrollToLatestMessage();
   }
 
-  void _scrollToBottom() {
+  final GlobalKey _latestMessageKey = GlobalKey();
+
+  void _scrollToLatestMessage() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+      if (_latestMessageKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _latestMessageKey.currentContext!,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          alignment: 0.05,
         );
       }
     });
@@ -457,7 +460,15 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
 
           // Render active chat messages
           if (_messages.isNotEmpty) ...[
-            ..._messages.map((msg) => _buildChatMessageBubble(msg)),
+            ..._messages.asMap().entries.map((entry) {
+              final idx = entry.key;
+              final msg = entry.value;
+              final isLast = idx == _messages.length - 1;
+              return Container(
+                key: isLast ? _latestMessageKey : null,
+                child: _buildChatMessageBubble(msg),
+              );
+            }),
             if (_isTyping)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
