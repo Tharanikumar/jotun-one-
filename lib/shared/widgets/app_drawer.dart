@@ -96,7 +96,10 @@ class AppDrawer extends StatelessWidget {
       horizontalTitleGap: 12,
       onTap: () {
         Navigator.pop(context);
-        context.push(route);
+        final currentLoc = GoRouterState.of(context).uri.toString();
+        if (currentLoc != route) {
+          context.go(route);
+        }
       },
     );
   }

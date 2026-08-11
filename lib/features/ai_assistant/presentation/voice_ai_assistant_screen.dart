@@ -241,7 +241,7 @@ class _VoiceAiAssistantScreenState extends State<VoiceAiAssistantScreen>
                   EnterpriseAiOrb(
                     size: 210,
                     isAnimated: true,
-                    heroTag: 'ai_assistant_orb',
+                    heroTag: null,
                     isListening: _isListening && _currentState == VoiceState.listening,
                     isSpeaking: _currentState == VoiceState.speaking,
                     soundLevel: _soundLevel,

@@ -17,7 +17,6 @@ class AiAssistantScreen extends StatefulWidget {
 }
 
 class _AiAssistantScreenState extends State<AiAssistantScreen> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _inputFocusNode = FocusNode();
@@ -179,23 +178,24 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     final isDesktop = MediaQuery.of(context).size.width >= 900;
 
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: AppColors.background,
       drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
-          child: Material(
-            color: Colors.white,
-            shape: const CircleBorder(),
-            elevation: 2,
-            shadowColor: Colors.black12,
-            child: InkWell(
-              customBorder: const CircleBorder(),
-              onTap: () => _scaffoldKey.currentState?.openDrawer(),
-              child: const Icon(Icons.menu_rounded, color: AppColors.navyDark, size: 20),
+        leading: Builder(
+          builder: (scaffoldContext) => Padding(
+            padding: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
+            child: Material(
+              color: Colors.white,
+              shape: const CircleBorder(),
+              elevation: 2,
+              shadowColor: Colors.black12,
+              child: InkWell(
+                customBorder: const CircleBorder(),
+                onTap: () => Scaffold.of(scaffoldContext).openDrawer(),
+                child: const Icon(Icons.menu_rounded, color: AppColors.navyDark, size: 20),
+              ),
             ),
           ),
         ),
