@@ -468,16 +468,48 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 10, offset: const Offset(0, 3))],
                 ),
-                child: ListTile(
-                  leading: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: q['bgColor'] as Color, borderRadius: BorderRadius.circular(12)),
-                    child: Icon(q['icon'] as IconData, color: q['color'] as Color, size: 20),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    onTap: () => _sendMessage(q['title'] as String),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(color: q['bgColor'] as Color, borderRadius: BorderRadius.circular(12)),
+                            child: Icon(q['icon'] as IconData, color: q['color'] as Color, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  q['title'] as String,
+                                  style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold, color: AppColors.navyDark),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  q['category'] as String,
+                                  style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted, size: 20),
+                        ],
+                      ),
+                    ),
                   ),
-                  title: Text(q['title'] as String, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
-                  subtitle: Text(q['category'] as String, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
-                  trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-                  onTap: () => _sendMessage(q['title'] as String),
                 ),
               )),
           const SizedBox(height: 20),

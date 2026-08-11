@@ -292,15 +292,25 @@ class _AiCapabilitiesSheetState extends State<AiCapabilitiesSheet> {
                                   children: [
                                     Row(
                                       children: [
-                                        Text(cap['title'] as String, style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.navyDark)),
-                                        const Spacer(),
+                                        Expanded(
+                                          child: Text(
+                                            cap['title'] as String,
+                                            style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.navyDark),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
                                             color: (cap['color'] as Color).withAlpha(15),
                                             borderRadius: BorderRadius.circular(8),
                                           ),
-                                          child: Text(cap['badge'] as String, style: TextStyle(color: cap['color'] as Color, fontSize: 10, fontWeight: FontWeight.bold)),
+                                          child: Text(
+                                            cap['badge'] as String,
+                                            style: TextStyle(color: cap['color'] as Color, fontSize: 9, fontWeight: FontWeight.bold),
+                                          ),
                                         ),
                                       ],
                                     ),
