@@ -130,28 +130,38 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
       _typingSuggestions.clear();
     });
 
-    _scrollToBottom();
+    _scrollToBottom(smooth: true);
 
-    Future.delayed(const Duration(milliseconds: 700), () {
+    Future.delayed(const Duration(milliseconds: 600), () {
       if (mounted) {
         final botMsg = _aiService.processUserMessage(text);
         setState(() {
           _isTyping = false;
           _messages.add(botMsg);
         });
-        _scrollToBottom();
+        _scrollToBottom(smooth: true);
       }
     });
   }
 
-  void _scrollToBottom() {
+  void _scrollToBottom({bool smooth = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (!mounted || !_scrollController.hasClients) return;
+
+      final target = _scrollController.position.maxScrollExtent;
+      final current = _scrollController.position.pixels;
+      final distance = (target - current).abs();
+
+      if (distance < 5) return; // Already at bottom
+
+      if (smooth) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          target,
+          duration: Duration(milliseconds: (distance > 300 ? 450 : 250)),
+          curve: Curves.easeInOutCubic,
         );
+      } else {
+        _scrollController.jumpTo(target);
       }
     });
   }
@@ -235,6 +245,28 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
           ],
         ),
         actions: [
+          if (_messages.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 6, top: 8, bottom: 8),
+              child: Material(
+                color: Colors.white,
+                shape: const CircleBorder(),
+                elevation: 2,
+                shadowColor: Colors.black12,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () {
+                    setState(() {
+                      _messages.clear();
+                    });
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Icon(Icons.refresh_rounded, color: AppColors.navyDark, size: 18),
+                  ),
+                ),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             child: Material(
@@ -344,40 +376,44 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
 
   // Tab 0: Smart AI Chat View
   Widget _buildSmartTabView() {
+    final hasMessages = _messages.isNotEmpty;
+
     return SingleChildScrollView(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Hero Waving Penguin Mascot
-          Center(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 170,
-                  height: 170,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        AppColors.primary.withAlpha(45),
-                        AppColors.primaryLight.withAlpha(10),
-                        Colors.transparent,
-                      ],
+          // Hero Waving Penguin Mascot (Compact when conversation is active)
+          if (!hasMessages) ...[
+            Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 170,
+                    height: 170,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          AppColors.primary.withAlpha(45),
+                          AppColors.primaryLight.withAlpha(10),
+                          Colors.transparent,
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Image.asset(
-                  'assets/images/penguin_ai_assistant.png',
-                  height: 165,
-                  fit: BoxFit.contain,
-                ),
-              ],
+                  Image.asset(
+                    'assets/images/penguin_ai_assistant.png',
+                    height: 165,
+                    fit: BoxFit.contain,
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
+          ],
 
           // Contextual Blue Gradient Greeting Card
           Container(
