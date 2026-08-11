@@ -21,8 +21,8 @@ class AiService {
       return _continueITFlow(lower, nowStr);
     }
 
-    // 2. Advanced Multi-Slot Extraction for Leave
-    if (lower.contains('leave') || lower.contains('vacation') || lower.contains('off')) {
+    // 2. Leave Intents
+    if (lower.contains('leave') || lower.contains('vacation') || lower.contains('off') || lower.contains('time off')) {
       if (lower.contains('apply') || lower.contains('need') || lower.contains('take') || lower.contains('tomorrow') || lower.contains('friday')) {
         _activeFlow = 'LEAVE_FLOW';
         _flowData = {};
@@ -98,17 +98,18 @@ class AiService {
       }
     }
 
-    // 3. Task Management & AI Prioritization
-    if (lower.contains('task') || lower.contains('to do') || lower.contains('assigned') || lower.contains('finish today') || lower.contains('overdue')) {
+    // 3. Task Management & Prioritization
+    if (lower.contains('task') || lower.contains('to do') || lower.contains('assigned') || lower.contains('finish today') || lower.contains('overdue') || lower.contains('high priority') || lower.contains('completed')) {
       String filter = 'All';
-      if (lower.contains('today')) filter = 'Today';
-      if (lower.contains('upcoming') || lower.contains('week')) filter = 'Upcoming';
+      if (lower.contains('today') || lower.contains('finish today')) filter = 'Today';
+      if (lower.contains('high') || lower.contains('priority')) filter = 'High';
+      if (lower.contains('completed')) filter = 'Completed';
       final tasks = workplaceServices.getTasks(filter: filter);
 
       return AiMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         isUser: false,
-        text: 'AI Copilot prioritized your active workplace tasks:',
+        text: 'AI Copilot prioritized your active workplace tasks ($filter):',
         time: nowStr,
         responseType: AiResponseType.taskListCard,
         data: {
@@ -121,8 +122,8 @@ class AiService {
     }
 
     // 4. IT Support & Issue Classification Engine
-    if (lower.contains('it') || lower.contains('ticket') || lower.contains('laptop') || lower.contains('vpn') || lower.contains('software') || lower.contains('wifi') || lower.contains('printer')) {
-      if (lower.contains('status') || lower.contains('track') || lower.contains('my ticket')) {
+    if (lower.contains('it') || lower.contains('ticket') || lower.contains('laptop') || lower.contains('vpn') || lower.contains('software') || lower.contains('wifi') || lower.contains('printer') || lower.contains('issue')) {
+      if (lower.contains('status') || lower.contains('track') || lower.contains('my ticket') || lower.contains('#it-1024')) {
         final tickets = workplaceServices.getITTickets();
         return AiMessage(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -150,8 +151,8 @@ class AiService {
       }
     }
 
-    // 5. Secure Payslip & Financial Insights
-    if (lower.contains('payslip') || lower.contains('salary') || lower.contains('paystub') || lower.contains('earnings')) {
+    // 5. Secure Payslip & Salary
+    if (lower.contains('payslip') || lower.contains('salary') || lower.contains('paystub') || lower.contains('earnings') || lower.contains('tax') || lower.contains('download july')) {
       final payslip = workplaceServices.getLatestPayslip();
       return AiMessage(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -178,8 +179,8 @@ class AiService {
       );
     }
 
-    // 7. HR Policy RAG Knowledge Engine
-    if (lower.contains('policy') || lower.contains('handbook') || lower.contains('rules') || lower.contains('guidelines') || lower.contains('wfh')) {
+    // 7. HR Policy & Document Search Engine
+    if (lower.contains('policy') || lower.contains('handbook') || lower.contains('rules') || lower.contains('guidelines') || lower.contains('wfh') || lower.contains('travel') || lower.contains('search')) {
       final policy = workplaceServices.searchPolicy(lower);
       if (policy != null) {
         return AiMessage(
@@ -207,11 +208,35 @@ class AiService {
       }
     }
 
+    // 8. Employee Profile Intent
+    if (lower.contains('profile') || lower.contains('employee info') || lower.contains('my info') || lower.contains('id')) {
+      return AiMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        isUser: false,
+        text: '👤 Employee Record Verified:\n• Name: Tharani Kumar\n• Role: Operations Specialist\n• Employee ID: JOT-88241\n• Department: Plant Operations - Zone B\n• Line Manager: Sarah Jenkins',
+        time: nowStr,
+        responseType: AiResponseType.text,
+        quickActions: ['Update Profile Info', 'View Team Directory'],
+      );
+    }
+
+    // 9. Safety & EHS Guidelines Intent
+    if (lower.contains('safety') || lower.contains('ehs') || lower.contains('training') || lower.contains('ppe')) {
+      return AiMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        isUser: false,
+        text: '🛡️ Plant EHS Safety Guidelines (Ref: EHS-2026-B):\n• Mandatory PPE: Hard Hat, Steel-Toe Safety Boots & High-Viz Vest required in Manufacturing Zone B.\n• Emergency Assembly Point: Field Area 3.\n• Safety Officer Contact: Ext #4412',
+        time: nowStr,
+        responseType: AiResponseType.text,
+        quickActions: ['Complete Safety Training', 'Report Safety Hazard'],
+      );
+    }
+
     // Fallback AI Assistant Response
     return AiMessage(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       isUser: false,
-      text: 'I parsed your input as a general workplace query. How would you like me to assist you?',
+      text: 'I parsed your query as a general workplace request. How can I best assist you?',
       time: nowStr,
       responseType: AiResponseType.text,
       quickActions: ['Apply Leave', 'Check Tasks', 'IT Support', 'View Payslip'],
