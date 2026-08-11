@@ -1,5 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../shared/widgets/app_drawer.dart';
+import '../domain/models/ai_intent.dart';
+import '../domain/services/ai_service.dart';
+import '../domain/services/workplace_services.dart';
+import 'widgets/ai_capabilities_sheet.dart';
+import 'widgets/ai_response_cards.dart';
 
 class AiAssistantScreen extends StatefulWidget {
   const AiAssistantScreen({super.key});
@@ -9,118 +17,131 @@ class AiAssistantScreen extends StatefulWidget {
 }
 
 class _AiAssistantScreenState extends State<AiAssistantScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  int _activeTab = 0; // 0: Smart, 1: History, 2: Saved
+  final FocusNode _inputFocusNode = FocusNode();
 
-  final List<Map<String, dynamic>> _messages = [];
+  late final WorkplaceServices _workplaceServices;
+  late final AiService _aiService;
+
+  int _activeTab = 0; // 0: Smart, 1: History, 2: Saved
+  bool _isTyping = false;
+  String _historySearchQuery = '';
+  String _savedSearchQuery = '';
+  String _savedCategoryFilter = 'All';
+
+  final List<AiMessage> _messages = [];
+  final List<String> _typingSuggestions = [];
 
   final List<Map<String, dynamic>> _quickQuestions = [
     {
       'title': 'How can I apply for leave?',
+      'category': 'Leave & Attendance',
       'icon': Icons.calendar_month_rounded,
       'color': const Color(0xFF2563EB),
       'bgColor': const Color(0xFFEFF6FF),
     },
     {
       'title': 'My IT ticket is not working',
-      'icon': Icons.tune_rounded,
-      'color': const Color(0xFF8B5CF6),
-      'bgColor': const Color(0xFFF5F3FF),
-    },
-    {
-      'title': 'Company policy on overtime',
-      'icon': Icons.access_time_filled_rounded,
-      'color': const Color(0xFF10B981),
-      'bgColor': const Color(0xFFECFDF5),
-    },
-    {
-      'title': 'Where can I find safety guidelines?',
-      'icon': Icons.shield_rounded,
-      'color': const Color(0xFFF59E0B),
-      'bgColor': const Color(0xFFFFF7ED),
-    },
-  ];
-
-  final List<Map<String, dynamic>> _exploreCards = [
-    {
-      'title': 'Leave Application',
-      'subtitle': 'Apply and track your leaves',
-      'icon': Icons.calendar_month_rounded,
-      'color': const Color(0xFF2563EB),
-      'bgColor': const Color(0xFFEFF6FF),
-      'iconBg': const Color(0xFFDBEAFE),
-      'route': '/app/leave',
-    },
-    {
-      'title': 'IT Support',
-      'subtitle': 'Get help for your IT issues',
+      'category': 'IT Support',
       'icon': Icons.headset_mic_rounded,
       'color': const Color(0xFF8B5CF6),
       'bgColor': const Color(0xFFF5F3FF),
-      'iconBg': const Color(0xFFEDE9FE),
-      'route': '/app/helpdesk',
     },
     {
-      'title': 'HR Policies',
-      'subtitle': 'Access company policies',
-      'icon': Icons.article_rounded,
+      'title': 'Show my latest payslip',
+      'category': 'Payslip',
+      'icon': Icons.receipt_long_rounded,
       'color': const Color(0xFF10B981),
       'bgColor': const Color(0xFFECFDF5),
-      'iconBg': const Color(0xFFD1FAE5),
-      'route': '/app/leave',
     },
     {
-      'title': 'Safety Hub',
-      'subtitle': 'Guidelines and safety tips',
-      'icon': Icons.shield_rounded,
+      'title': 'What tasks are assigned to me?',
+      'category': 'Tasks',
+      'icon': Icons.task_alt_rounded,
       'color': const Color(0xFFF59E0B),
       'bgColor': const Color(0xFFFFF7ED),
-      'iconBg': const Color(0xFFFEF3C7),
-      'route': '/app/safety',
+    },
+    {
+      'title': 'What is my attendance status?',
+      'category': 'Attendance',
+      'icon': Icons.access_time_filled_rounded,
+      'color': const Color(0xFF06B6D4),
+      'bgColor': const Color(0xFFECFEFF),
+    },
+    {
+      'title': 'What is the annual leave policy?',
+      'category': 'HR Policy',
+      'icon': Icons.article_rounded,
+      'color': const Color(0xFFEC4899),
+      'bgColor': const Color(0xFFFDF2F8),
     },
   ];
 
-  void _sendMessage(String text) {
-    if (text.trim().isEmpty) return;
+  @override
+  void initState() {
+    super.initState();
+    _workplaceServices = WorkplaceServices();
+    _aiService = AiService(workplaceServices: _workplaceServices);
 
+    _messageController.addListener(_onInputChanged);
+  }
+
+  @override
+  void dispose() {
+    _messageController.removeListener(_onInputChanged);
+    _messageController.dispose();
+    _scrollController.dispose();
+    _inputFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onInputChanged() {
+    final text = _messageController.text.toLowerCase().trim();
     setState(() {
-      _messages.add({
-        'isUser': true,
-        'text': text,
-        'time': 'Just now',
-      });
-      _messageController.clear();
-    });
-
-    _scrollToBottom();
-
-    Future.delayed(const Duration(milliseconds: 900), () {
-      if (mounted) {
-        setState(() {
-          _messages.add({
-            'isUser': false,
-            'text': _generateBotResponse(text),
-            'time': 'Just now',
-          });
-        });
-        _scrollToBottom();
+      _typingSuggestions.clear();
+      if (text.contains('leave')) {
+        _typingSuggestions.addAll(['Apply for leave', 'Check leave balance', 'View pending leave', 'Cancel leave request', 'Leave policy']);
+      } else if (text.contains('it') || text.contains('ticket') || text.contains('laptop')) {
+        _typingSuggestions.addAll(['Track IT ticket #IT-1024', 'VPN issue', 'Create IT ticket', 'Contact IT Desk']);
+      } else if (text.contains('task')) {
+        _typingSuggestions.addAll(['What do I need to finish today?', 'Show high priority tasks', 'Overdue tasks']);
+      } else if (text.contains('pay') || text.contains('salary')) {
+        _typingSuggestions.addAll(['Show my latest payslip', 'Download July 2026 payslip', 'Tax deductions breakdown']);
       }
     });
   }
 
-  String _generateBotResponse(String query) {
-    final q = query.toLowerCase();
-    if (q.contains('leave')) {
-      return 'To apply for leave, head over to the Leave Module. Select your Leave Type (Casual, Sick, Annual), pick your start/end dates, and tap Submit.';
-    } else if (q.contains('ticket') || q.contains('it')) {
-      return 'I checked your active IT tickets. Ticket #IT-2024-0047 ("System running slow") is currently assigned to Senior Engineer Alex in IT Support.';
-    } else if (q.contains('overtime') || q.contains('policy')) {
-      return 'Per Jotun Enterprise Policy 4.2: Overtime for plant operations requires manager pre-approval 24h prior and is calculated at 1.5x standard hourly rate.';
-    } else if (q.contains('safety')) {
-      return 'Safety guidelines are available under EHS Safety Hub. Remember that mandatory PPE (Hard Hat & Safety Boots) is strictly required in Zone B.';
-    }
-    return 'I am processing your query: "$query". Let me fetch the relevant records from the Jotun One database.';
+  void _sendMessage(String text) {
+    if (text.trim().isEmpty) return;
+
+    final userMsg = AiMessage(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      isUser: true,
+      text: text,
+      time: _getFormattedTime(),
+    );
+
+    setState(() {
+      _messages.add(userMsg);
+      _isTyping = true;
+      _messageController.clear();
+      _typingSuggestions.clear();
+    });
+
+    _scrollToBottom();
+
+    Future.delayed(const Duration(milliseconds: 700), () {
+      if (mounted) {
+        final botMsg = _aiService.processUserMessage(text);
+        setState(() {
+          _isTyping = false;
+          _messages.add(botMsg);
+        });
+        _scrollToBottom();
+      }
+    });
   }
 
   void _scrollToBottom() {
@@ -135,10 +156,22 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
     });
   }
 
+  String _getFormattedTime() {
+    final now = DateTime.now();
+    final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+    final minute = now.minute.toString().padLeft(2, '0');
+    final ampm = now.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $ampm';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 900;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      key: _scaffoldKey,
+      backgroundColor: AppColors.background,
+      drawer: const AppDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -151,12 +184,8 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
             shadowColor: Colors.black12,
             child: InkWell(
               customBorder: const CircleBorder(),
-              onTap: () {
-                if (Navigator.of(context).canPop()) {
-                  context.pop();
-                }
-              },
-              child: const Icon(Icons.menu_rounded, color: Color(0xFF1E293B), size: 20),
+              onTap: () => _scaffoldKey.currentState?.openDrawer(),
+              child: const Icon(Icons.menu_rounded, color: AppColors.navyDark, size: 20),
             ),
           ),
         ),
@@ -168,15 +197,21 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
                 color: Colors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 8,
-                  ),
+                  BoxShadow(color: Colors.black.withAlpha(20), blurRadius: 8),
                 ],
               ),
-              child: const CircleAvatar(
-                radius: 18,
-                backgroundImage: AssetImage('assets/images/penguin_ai_assistant.png'),
+              child: const Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: AssetImage('assets/images/penguin_ai_assistant.png'),
+                  ),
+                  Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: CircleAvatar(radius: 4, backgroundColor: AppColors.success),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 10),
@@ -184,33 +219,15 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'AI Assistant',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
-                  ),
+                  style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.navyDark),
                 ),
                 Row(
                   children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                    Container(width: 6, height: 6, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
                     const SizedBox(width: 4),
-                    const Text(
-                      'Online',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF10B981),
-                      ),
-                    ),
+                    Text('Online Copilot', style: AppTypography.labelSmall.copyWith(color: AppColors.success, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -227,14 +244,10 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
               shadowColor: Colors.black12,
               child: InkWell(
                 customBorder: const CircleBorder(),
-                onTap: () {},
+                onTap: () => AiCapabilitiesSheet.show(context, _sendMessage),
                 child: const Padding(
                   padding: EdgeInsets.all(10),
-                  child: Icon(
-                    Icons.auto_awesome,
-                    color: Color(0xFF7C3AED),
-                    size: 18,
-                  ),
+                  child: Icon(Icons.auto_awesome, color: AppColors.accentPurple, size: 18),
                 ),
               ),
             ),
@@ -242,434 +255,677 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         ],
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+      ),
+    );
+  }
+
+  // Mobile Single-Column Layout
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        Expanded(child: _buildTabBody()),
+        _buildBottomBar(),
+      ],
+    );
+  }
+
+  // Desktop Dual-Column Layout
+  Widget _buildDesktopLayout() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 3,
+          child: Column(
+            children: [
+              Expanded(child: _buildTabBody()),
+              _buildBottomBar(),
+            ],
+          ),
+        ),
+        const VerticalDivider(width: 1, color: AppColors.borderLight),
+        Expanded(
+          flex: 2,
+          child: _buildRightContextualPanel(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRightContextualPanel() {
+    final tasks = _workplaceServices.getTasks(filter: 'Today');
+    final balances = _workplaceServices.getLeaveBalances();
+
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Contextual Workplace Overview', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          Text('Today Tasks Priority', style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+          const SizedBox(height: 8),
+          ...tasks.map((t) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(10)),
+                child: Row(
                   children: [
-                    // 1. Hero 3D Waving Penguin Mascot
-                    Center(
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Container(
-                            width: 180,
-                            height: 180,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: RadialGradient(
-                                colors: [
-                                  const Color(0xFF3B82F6).withOpacity(0.18),
-                                  const Color(0xFF60A5FA).withOpacity(0.04),
-                                  Colors.transparent,
-                                ],
-                              ),
-                            ),
-                          ),
-                          Image.asset(
-                            'assets/images/penguin_ai_assistant.png',
-                            height: 175,
-                            fit: BoxFit.contain,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                    const Icon(Icons.check_circle_outline_rounded, size: 16, color: AppColors.primary),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(t.title, style: AppTypography.bodySmall)),
+                  ],
+                ),
+              )),
+          const SizedBox(height: 16),
+          Text('Quick Leave Balances', style: AppTypography.labelMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+          const SizedBox(height: 8),
+          ...balances.take(3).map((b) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(b.type, style: AppTypography.bodySmall),
+                    Text('${b.available} days', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold, color: b.color)),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
 
-                    // 2. Premium Blue Gradient Greeting Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF2563EB),
-                            Color(0xFF1D4ED8),
-                            Color(0xFF1E40AF),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF2563EB).withOpacity(0.35),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.3),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const CircleAvatar(
-                              radius: 20,
-                              backgroundImage: AssetImage('assets/images/penguin_ai_assistant.png'),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Hi Tharani 👋',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  "I'm your Jotun One AI Workplace Assistant.",
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.92),
-                                    fontSize: 14,
-                                    height: 1.3,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'How can I help you today?',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.92),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  '09:41 AM',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.6),
-                                    fontSize: 11,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+  Widget _buildTabBody() {
+    if (_activeTab == 1) return _buildHistoryTabView();
+    if (_activeTab == 2) return _buildSavedTabView();
+    return _buildSmartTabView();
+  }
 
-                    // Chat messages list if active
-                    if (_messages.isNotEmpty) ...[
-                      ..._messages.map((msg) => _buildChatBubble(msg)),
-                      const SizedBox(height: 20),
-                    ],
-
-                    // 3. Quick Questions Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Quick Questions',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () {},
-                          borderRadius: BorderRadius.circular(12),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'View All',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2563EB),
-                                  ),
-                                ),
-                                SizedBox(width: 2),
-                                Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 18,
-                                  color: Color(0xFF2563EB),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+  // Tab 0: Smart AI Chat View
+  Widget _buildSmartTabView() {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hero Waving Penguin Mascot
+          Center(
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 170,
+                  height: 170,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        AppColors.primary.withAlpha(45),
+                        AppColors.primaryLight.withAlpha(10),
+                        Colors.transparent,
                       ],
                     ),
-                    const SizedBox(height: 12),
+                  ),
+                ),
+                Image.asset(
+                  'assets/images/penguin_ai_assistant.png',
+                  height: 165,
+                  fit: BoxFit.contain,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
 
-                    ..._quickQuestions.map((q) => Container(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
-                            child: InkWell(
-                              onTap: () => _sendMessage(q['title'] as String),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Padding(
-                                padding: const EdgeInsets.all(14),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: BoxDecoration(
-                                        color: q['bgColor'] as Color,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Icon(
-                                        q['icon'] as IconData,
-                                        color: q['color'] as Color,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 14),
-                                    Expanded(
-                                      child: Text(
-                                        q['title'] as String,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFF1E293B),
-                                        ),
-                                      ),
-                                    ),
-                                    const Icon(
-                                      Icons.chevron_right_rounded,
-                                      size: 20,
-                                      color: Color(0xFF94A3B8),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        )),
-
-                    const SizedBox(height: 24),
-
-                    // 4. Explore More Section
-                    const Text(
-                      'Explore More',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+          // Contextual Blue Gradient Greeting Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF2563EB), Color(0xFF1D4ED8), Color(0xFF1E40AF)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(color: AppColors.primary.withAlpha(80), blurRadius: 20, offset: const Offset(0, 8)),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(color: Colors.white.withAlpha(70), shape: BoxShape.circle),
+                      child: const CircleAvatar(radius: 20, backgroundImage: AssetImage('assets/images/penguin_ai_assistant.png')),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Hi Tharani 👋', style: AppTypography.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text("I'm your Jotun One AI Workplace Assistant.", style: TextStyle(color: Colors.white.withAlpha(240), fontSize: 14)),
+                          Text('How can I help you today?', style: TextStyle(color: Colors.white.withAlpha(240), fontSize: 14, fontWeight: FontWeight.w500)),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                  ],
+                ),
+                const SizedBox(height: 14),
 
-                    SizedBox(
-                      height: 140,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _exploreCards.length,
-                        separatorBuilder: (context, index) => const SizedBox(width: 12),
-                        itemBuilder: (context, index) {
-                          final card = _exploreCards[index];
-                          return InkWell(
-                            onTap: () {
-                              final route = card['route'] as String;
-                              context.push(route);
-                            },
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              width: 145,
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: card['bgColor'] as Color,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: (card['color'] as Color).withOpacity(0.15),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: (card['color'] as Color).withOpacity(0.15),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      card['icon'] as IconData,
-                                      color: card['color'] as Color,
-                                      size: 20,
-                                    ),
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        card['title'] as String,
-                                        style: const TextStyle(
-                                          fontSize: 13.5,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF0F172A),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 3),
-                                      Text(
-                                        card['subtitle'] as String,
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: Color(0xFF64748B),
-                                          height: 1.2,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                // Live Workplace Contextual Chips
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    _contextChip('3 tasks due this week', Icons.task_alt_rounded, () => _sendMessage('What tasks do I have today?')),
+                    _contextChip('Leave balance updated', Icons.calendar_month_rounded, () => _sendMessage('How many casual leaves do I have?')),
+                    _contextChip('1 IT ticket in progress', Icons.headset_mic_rounded, () => _sendMessage('Track IT ticket status')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Render Chat Messages List
+          if (_messages.isNotEmpty) ...[
+            ..._messages.map((msg) => _buildMessageBubble(msg)),
+            if (_isTyping) _buildTypingIndicator(),
+            const SizedBox(height: 20),
+          ],
+
+          // Quick Questions Section
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Quick Questions', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold, color: AppColors.navyDark)),
+              InkWell(
+                onTap: () => AiCapabilitiesSheet.show(context, _sendMessage),
+                child: Row(
+                  children: [
+                    Text('View All', style: AppTypography.labelMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                    const Icon(Icons.chevron_right_rounded, size: 18, color: AppColors.primary),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 12),
 
-            // 5. Bottom Interactive Input & Nav Bar
-            Container(
-              padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, -6),
+          ..._quickQuestions.map((q) => Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 10, offset: const Offset(0, 3))],
+                ),
+                child: ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: q['bgColor'] as Color, borderRadius: BorderRadius.circular(12)),
+                    child: Icon(q['icon'] as IconData, color: q['color'] as Color, size: 20),
                   ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      // Mic Action Button
-                      Material(
-                        color: const Color(0xFFF1F5F9),
-                        shape: const CircleBorder(),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: () => context.push('/app/voice-ai-assistant'),
-                          child: const Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Icon(
-                              Icons.mic_rounded,
-                              color: Color(0xFF2563EB),
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
+                  title: Text(q['title'] as String, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                  subtitle: Text(q['category'] as String, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
+                  trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+                  onTap: () => _sendMessage(q['title'] as String),
+                ),
+              )),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
 
-                      // Input Search Pill
-                      Expanded(
-                        child: Container(
-                          height: 48,
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: TextField(
-                            controller: _messageController,
-                            style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
-                            decoration: const InputDecoration(
-                              hintText: 'Type your question...',
-                              hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            onSubmitted: _sendMessage,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-
-                      // Send Blue Action Button
-                      Material(
-                        color: const Color(0xFF2563EB),
-                        shape: const CircleBorder(),
-                        elevation: 3,
-                        shadowColor: const Color(0xFF2563EB).withOpacity(0.4),
-                        child: InkWell(
-                          customBorder: const CircleBorder(),
-                          onTap: () => _sendMessage(_messageController.text),
-                          child: const Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Icon(
-                              Icons.send_rounded,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Bottom Nav Tabs: Smart, History, Saved
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildNavTab(0, Icons.auto_awesome, 'Smart'),
-                      _buildNavTab(1, Icons.history_rounded, 'History'),
-                      _buildNavTab(2, Icons.bookmark_border_rounded, 'Saved'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+  Widget _contextChip(String text, IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(color: Colors.white.withAlpha(45), borderRadius: BorderRadius.circular(20)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 12),
+            const SizedBox(width: 4),
+            Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
           ],
         ),
+      ),
+    );
+  }
+
+  // Message Bubble & Card Renderer
+  Widget _buildMessageBubble(AiMessage msg) {
+    if (msg.isUser) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(18).copyWith(bottomRight: const Radius.circular(4)),
+              boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(40), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: Text(msg.text, style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.35)),
+          ),
+        ),
+      );
+    }
+
+    // AI Bot Response with Dynamic Cards
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(radius: 12, backgroundImage: AssetImage('assets/images/penguin_ai_assistant.png')),
+              const SizedBox(width: 8),
+              Text('Jotun Copilot', style: AppTypography.labelSmall.copyWith(fontWeight: FontWeight.bold, color: AppColors.navyDark)),
+              const SizedBox(width: 6),
+              Text(msg.time, style: AppTypography.labelSmall.copyWith(color: AppColors.textMuted)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Container(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.88),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (msg.text.isNotEmpty)
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18).copyWith(topLeft: const Radius.circular(4)), boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 10, offset: const Offset(0, 3))]),
+                    child: Text(msg.text, style: AppTypography.bodySmall.copyWith(color: AppColors.navyDark, height: 1.4)),
+                  ),
+                _renderCardForResponse(msg),
+                if (msg.quickActions != null && msg.quickActions!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: msg.quickActions!.map((act) {
+                      return ActionChip(
+                        label: Text(act, style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                        backgroundColor: AppColors.primary.withAlpha(15),
+                        side: BorderSide(color: AppColors.primary.withAlpha(40)),
+                        onPressed: () => _sendMessage(act),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _renderCardForResponse(AiMessage msg) {
+    switch (msg.responseType) {
+      case AiResponseType.leaveBalanceCard:
+        final balances = (msg.data?['balances'] as List<dynamic>? ?? []).cast<LeaveBalanceItem>();
+        return LeaveBalanceCardWidget(
+          balances: balances,
+          onApplyLeave: (type) => _sendMessage('Apply $type'),
+        );
+
+      case AiResponseType.leaveFormCard:
+        return LeaveFormCardWidget(
+          initialType: msg.data?['initialType'] as String? ?? 'Casual Leave',
+          onFormSubmitted: (formData) {
+            setState(() {
+              _messages.add(AiMessage(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                isUser: false,
+                text: 'Please review your leave application before submission:',
+                time: _getFormattedTime(),
+                responseType: AiResponseType.leaveConfirmationCard,
+                data: formData,
+              ));
+            });
+            _scrollToBottom();
+          },
+        );
+
+      case AiResponseType.leaveConfirmationCard:
+        final formData = msg.data ?? {};
+        return LeaveConfirmationCardWidget(
+          data: formData,
+          onEdit: () => _sendMessage('Apply leave'),
+          onConfirm: () {
+            final res = _workplaceServices.submitLeaveRequest(
+              type: formData['type'] as String? ?? 'Casual Leave',
+              startDate: formData['startDate'] as String? ?? 'Tomorrow',
+              endDate: formData['endDate'] as String? ?? 'Tomorrow',
+              days: formData['days'] as int? ?? 1,
+              reason: formData['reason'] as String? ?? 'Personal work',
+            );
+            setState(() {
+              _messages.add(AiMessage(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                isUser: false,
+                text: '✓ Leave request submitted successfully.',
+                time: _getFormattedTime(),
+                responseType: AiResponseType.leaveStatusCard,
+                data: res,
+                quickActions: ['Show My Leave Balance', 'View All Leave Requests'],
+              ));
+            });
+            _scrollToBottom();
+          },
+        );
+
+      case AiResponseType.leaveStatusCard:
+        return LeaveStatusCardWidget(data: msg.data ?? {});
+
+      case AiResponseType.taskListCard:
+        final tasks = (msg.data?['tasks'] as List<dynamic>? ?? []).cast<TaskItem>();
+        return TaskListCardWidget(
+          tasks: tasks,
+          onStatusChange: (taskId, newStatus) {
+            _workplaceServices.updateTaskStatus(taskId, newStatus);
+            setState(() {});
+          },
+        );
+
+      case AiResponseType.itClassificationCard:
+        return ITClassificationCardWidget(
+          onSelectCategory: (cat) => _sendMessage('Report $cat issue'),
+        );
+
+      case AiResponseType.itTicketStatusCard:
+        final tickets = (msg.data?['tickets'] as List<dynamic>? ?? []).cast<ITTicketItem>();
+        return ITTicketStatusCardWidget(tickets: tickets);
+
+      case AiResponseType.payslipCard:
+        return PayslipCardWidget(data: msg.data ?? {});
+
+      case AiResponseType.attendanceCard:
+        return AttendanceCardWidget(data: msg.data ?? {});
+
+      case AiResponseType.policyCard:
+        return PolicyCardWidget(data: msg.data ?? {});
+
+      case AiResponseType.errorCard:
+        return ErrorCardWidget(
+          title: msg.data?['errorTitle'] as String? ?? 'Error',
+          message: msg.data?['errorMessage'] as String? ?? 'Service unavailable.',
+          onRetry: () => _sendMessage('Retry policy search'),
+        );
+
+      case AiResponseType.text:
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildTypingIndicator() {
+    return Row(
+      children: [
+        const CircleAvatar(radius: 10, backgroundImage: AssetImage('assets/images/penguin_ai_assistant.png')),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+          child: const Row(
+            children: [
+              SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
+              SizedBox(width: 8),
+              Text('Jotun Copilot is analyzing workplace data...', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Tab 1: Conversation History View
+  Widget _buildHistoryTabView() {
+    final history = _workplaceServices.getHistory().where((h) {
+      if (_historySearchQuery.isEmpty) return true;
+      return h.title.toLowerCase().contains(_historySearchQuery.toLowerCase());
+    }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Search past conversation topics...',
+              prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
+            ),
+            onChanged: (val) => setState(() => _historySearchQuery = val),
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: ListView.builder(
+              itemCount: history.length,
+              itemBuilder: (context, index) {
+                final item = history[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 1,
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: AppColors.background,
+                      child: Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primary, size: 20),
+                    ),
+                    title: Text(item.title, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                    subtitle: Text('${item.dateStr} • ${item.lastMessage}', maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.textMuted),
+                    onTap: () {
+                      setState(() => _activeTab = 0);
+                      _sendMessage(item.title);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Tab 2: Saved Bookmarks View
+  Widget _buildSavedTabView() {
+    final saved = _workplaceServices.getSavedBookmarks().where((s) {
+      if (_savedCategoryFilter != 'All' && s.category != _savedCategoryFilter) return false;
+      if (_savedSearchQuery.isNotEmpty && !s.title.toLowerCase().contains(_savedSearchQuery.toLowerCase())) return false;
+      return true;
+    }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          TextField(
+            decoration: InputDecoration(
+              hintText: 'Search saved policies & answers...',
+              prefixIcon: const Icon(Icons.bookmark_border_rounded, color: AppColors.textMuted),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.borderLight)),
+            ),
+            onChanged: (val) => setState(() => _savedSearchQuery = val),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: ['All', 'Policies', 'Answers', 'Documents'].map((cat) {
+              final sel = _savedCategoryFilter == cat;
+              return Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: ChoiceChip(
+                  label: Text(cat, style: TextStyle(fontSize: 11, color: sel ? Colors.white : AppColors.textSecondary)),
+                  selected: sel,
+                  selectedColor: AppColors.primary,
+                  onSelected: (val) => setState(() => _savedCategoryFilter = cat),
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 14),
+          Expanded(
+            child: ListView.builder(
+              itemCount: saved.length,
+              itemBuilder: (context, index) {
+                final item = saved[index];
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 1,
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFEFF6FF),
+                      child: Icon(Icons.bookmark_rounded, color: AppColors.primary, size: 20),
+                    ),
+                    title: Text(item.title, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold)),
+                    subtitle: Text(item.snippet, maxLines: 2, overflow: TextOverflow.ellipsis, style: AppTypography.labelSmall.copyWith(color: AppColors.textSecondary)),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.bookmark_remove_rounded, color: AppColors.error, size: 18),
+                      onPressed: () {
+                        setState(() {
+                          _workplaceServices.getSavedBookmarks().removeWhere((b) => b.id == item.id);
+                        });
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Bottom Input & Navigation Bar Widget
+  Widget _buildBottomBar() {
+    return Container(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        boxShadow: [BoxShadow(color: Colors.black.withAlpha(12), blurRadius: 16, offset: const Offset(0, -6))],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Typing Suggestions Overlay
+          if (_typingSuggestions.isNotEmpty)
+            SizedBox(
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _typingSuggestions.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 6),
+                itemBuilder: (context, index) {
+                  final sug = _typingSuggestions[index];
+                  return ActionChip(
+                    label: Text(sug, style: AppTypography.labelSmall.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                    backgroundColor: AppColors.primary.withAlpha(15),
+                    onPressed: () => _sendMessage(sug),
+                  );
+                },
+              ),
+            ),
+          if (_typingSuggestions.isNotEmpty) const SizedBox(height: 8),
+
+          Row(
+            children: [
+              // Voice Input Microphone Button
+              Material(
+                color: AppColors.background,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => context.push('/app/voice-ai-assistant'),
+                  child: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Icon(Icons.mic_rounded, color: AppColors.primary, size: 22),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Search Text Field Input
+              Expanded(
+                child: Container(
+                  height: 48,
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: AppColors.borderLight),
+                  ),
+                  child: TextField(
+                    controller: _messageController,
+                    focusNode: _inputFocusNode,
+                    style: AppTypography.bodyMedium,
+                    decoration: const InputDecoration(
+                      hintText: 'Ask about leave, tasks, IT, payslip...',
+                      hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 13),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onSubmitted: _sendMessage,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Send Action Button
+              Material(
+                color: AppColors.primary,
+                shape: const CircleBorder(),
+                elevation: 3,
+                shadowColor: AppColors.primary.withAlpha(100),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => _sendMessage(_messageController.text),
+                  child: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Navigation Tabs: Smart, History, Saved
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavTab(0, Icons.auto_awesome, 'Smart'),
+              _buildNavTab(1, Icons.history_rounded, 'History'),
+              _buildNavTab(2, Icons.bookmark_border_rounded, 'Saved'),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -683,70 +939,17 @@ class _AiAssistantScreenState extends State<AiAssistantScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isActive ? const Color(0xFF2563EB) : const Color(0xFF64748B),
-            ),
+            Icon(icon, size: 18, color: isActive ? AppColors.primary : AppColors.textSecondary),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
-                color: isActive ? const Color(0xFF2563EB) : const Color(0xFF64748B),
+                color: isActive ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChatBubble(Map<String, dynamic> msg) {
-    final isUser = msg['isUser'] as bool;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Align(
-        alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-        child: Container(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isUser ? const Color(0xFF2563EB) : Colors.white,
-            borderRadius: BorderRadius.circular(20).copyWith(
-              bottomRight: isUser ? const Radius.circular(4) : const Radius.circular(20),
-              bottomLeft: isUser ? const Radius.circular(20) : const Radius.circular(4),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                msg['text'] as String,
-                style: TextStyle(
-                  color: isUser ? Colors.white : const Color(0xFF1E293B),
-                  fontSize: 14,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                msg['time'] as String,
-                style: TextStyle(
-                  color: isUser ? Colors.white70 : const Color(0xFF94A3B8),
-                  fontSize: 10,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

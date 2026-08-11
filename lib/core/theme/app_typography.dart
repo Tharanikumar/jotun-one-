@@ -29,6 +29,12 @@ abstract class AppTypography {
         color: AppColors.textPrimary,
       );
 
+  static TextStyle get titleSmall => GoogleFonts.plusJakartaSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      );
+
   static TextStyle get bodyLarge => GoogleFonts.plusJakartaSans(
         fontSize: 15,
         fontWeight: FontWeight.w500,
