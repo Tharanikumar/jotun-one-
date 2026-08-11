@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/apple_dock_magnifier.dart';
-import '../../../core/widgets/penguin_avatar.dart';
 import '../../../core/widgets/quick_access_tile.dart';
 import '../../../core/widgets/section_header.dart';
 import '../../../core/widgets/stat_card.dart';
+import '../../../core/widgets/enterprise_ai_orb.dart';
+import '../../../core/widgets/penguin_avatar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -25,51 +25,52 @@ class DashboardScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary.withAlpha(20),
-                          border: Border.all(color: AppColors.primary, width: 1.5),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary.withAlpha(20),
+                            border: Border.all(color: AppColors.primary, width: 1.5),
+                          ),
+                          child: const CircleAvatar(
+                            backgroundColor: Colors.transparent,
+                            child: Icon(Icons.person_rounded, color: AppColors.primary, size: 28),
+                          ),
                         ),
-                        child: const CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          child: Icon(Icons.person_rounded, color: AppColors.primary, size: 28),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Good Morning,',
                                 style: AppTypography.bodyMedium,
                               ),
-                            ],
-                          ),
-                          Row(
-                            children: [
                               Text(
                                 'Tharani Kumar 👋',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: AppTypography.titleMedium.copyWith(
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
+                              Text(
+                                'Production Department',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.bodySmall,
+                              ),
                             ],
                           ),
-                          Text(
-                            'Production Department',
-                            style: AppTypography.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   Stack(
                     children: [
                       Container(
@@ -118,49 +119,55 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // 4 KPI Metric Cards with Apple macOS Dock Magnification
-              AppleDockMagnifierRow(
+              // 4 KPI Metric Cards Grid
+              Row(
                 children: [
-                  StatCard(
-                    title: 'Tasks',
-                    value: '12',
-                    imagePath: 'assets/images/penguin_tasks.png',
-                    penguinType: PenguinType.tasks,
-                    iconBgColor: const Color(0xFFEFF6FF),
-                    iconColor: const Color(0xFF1D4ED8),
-                    heroTag: 'hero_tasks',
-                    onTap: () => context.push('/app/tasks'),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Tasks',
+                      value: '12',
+                      penguinType: PenguinType.tasks,
+                      imagePath: 'assets/images/penguin_tasks.png',
+                      iconBgColor: AppColors.primary.withAlpha(20),
+                      iconColor: AppColors.primary,
+                      onTap: () => context.push('/app/tasks-detail'),
+                    ),
                   ),
-                  StatCard(
-                    title: 'Approvals',
-                    value: '05',
-                    imagePath: 'assets/images/penguin_approvals.png',
-                    penguinType: PenguinType.approvals,
-                    iconBgColor: const Color(0xFFECFDF5),
-                    iconColor: const Color(0xFF15803D),
-                    heroTag: 'hero_approvals',
-                    onTap: () => context.push('/app/approvals'),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Approvals',
+                      value: '05',
+                      penguinType: PenguinType.approvals,
+                      imagePath: 'assets/images/penguin_approvals.png',
+                      iconBgColor: AppColors.accentMint.withAlpha(20),
+                      iconColor: AppColors.accentMint,
+                      onTap: () => context.push('/app/approvals-detail'),
+                    ),
                   ),
-                  StatCard(
-                    title: 'Tickets',
-                    value: '03',
-                    imagePath: 'assets/images/penguin_tickets.png',
-                    penguinType: PenguinType.tickets,
-                    iconBgColor: const Color(0xFFF5F3FF),
-                    iconColor: const Color(0xFF7E22CE),
-                    heroTag: 'hero_tickets',
-                    onTap: () => context.push('/app/helpdesk'),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Tickets',
+                      value: '03',
+                      penguinType: PenguinType.tickets,
+                      imagePath: 'assets/images/penguin_tickets.png',
+                      iconBgColor: AppColors.accentPurple.withAlpha(20),
+                      iconColor: AppColors.accentPurple,
+                      onTap: () => context.push('/app/helpdesk'),
+                    ),
                   ),
-                  StatCard(
-                    title: 'Alerts',
-                    value: '02',
-                    imagePath: 'assets/images/penguin_alerts.png',
-                    penguinType: PenguinType.alerts,
-                    badgeCount: '2',
-                    iconBgColor: const Color(0xFFFFF7ED),
-                    iconColor: const Color(0xFFC2410C),
-                    heroTag: 'hero_alerts',
-                    onTap: () => context.push('/app/notifications'),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: StatCard(
+                      title: 'Alerts',
+                      value: '02',
+                      penguinType: PenguinType.alerts,
+                      imagePath: 'assets/images/penguin_alerts.png',
+                      iconBgColor: AppColors.accentOrange.withAlpha(20),
+                      iconColor: AppColors.accentOrange,
+                      onTap: () => context.push('/app/notifications'),
+                    ),
                   ),
                 ],
               ),
@@ -234,17 +241,9 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(30),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.smart_toy_rounded,
-                        size: 48,
-                        color: Colors.white,
-                      ),
+                    const EnterpriseAiOrb(
+                      size: 64,
+                      isAnimated: true,
                     ),
                   ],
                 ),
@@ -267,6 +266,7 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.support_agent_rounded,
                     iconColor: AppColors.primary,
                     backgroundColor: AppColors.primary.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_helpdesk.png',
                     onTap: () => context.push('/app/helpdesk'),
                   ),
                   QuickAccessTile(
@@ -274,6 +274,7 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.event_note_rounded,
                     iconColor: AppColors.accentMint,
                     backgroundColor: AppColors.accentMint.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_leave.png',
                     onTap: () => context.push('/app/leave'),
                   ),
                   QuickAccessTile(
@@ -281,20 +282,23 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.access_time_filled_rounded,
                     iconColor: AppColors.accentPurple,
                     backgroundColor: AppColors.accentPurple.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_attendance.png',
                     onTap: () {},
                   ),
                   QuickAccessTile(
-                    label: 'Announce',
-                    icon: Icons.campaign_rounded,
+                    label: 'HR Services',
+                    icon: Icons.people_alt_rounded,
                     iconColor: AppColors.accentOrange,
                     backgroundColor: AppColors.accentOrange.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_hr.png',
                     onTap: () {},
                   ),
                   QuickAccessTile(
-                    label: 'Assets',
-                    icon: Icons.devices_rounded,
+                    label: 'Dashboard',
+                    icon: Icons.pie_chart_rounded,
                     iconColor: AppColors.accentCyan,
                     backgroundColor: AppColors.accentCyan.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_dashboard.png',
                     onTap: () {},
                   ),
                   QuickAccessTile(
@@ -302,6 +306,7 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.receipt_long_rounded,
                     iconColor: AppColors.primary,
                     backgroundColor: AppColors.primary.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_payslip.png',
                     onTap: () {},
                   ),
                   QuickAccessTile(
@@ -309,6 +314,7 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.inventory_2_rounded,
                     iconColor: AppColors.accentMint,
                     backgroundColor: AppColors.accentMint.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_warehouse.png',
                     onTap: () => context.push('/app/warehouse'),
                   ),
                   QuickAccessTile(
@@ -316,13 +322,14 @@ class DashboardScreen extends StatelessWidget {
                     icon: Icons.precision_manufacturing_rounded,
                     iconColor: AppColors.accentOrange,
                     backgroundColor: AppColors.accentOrange.withAlpha(15),
+                    imageAsset: 'assets/images/penguin_production.png',
                     onTap: () => context.push('/app/production'),
                   ),
                 ],
               ),
               const SizedBox(height: 28),
 
-              // 5. All Modules Grid Section Header
+              // 5. All Modules Section Header
               SectionHeader(
                 title: 'All Enterprise Modules',
                 actionText: 'View All Modules',
@@ -330,51 +337,154 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Module Cards List matching Image 2 modern layout with domain-specific images
-              _ModuleCard(
-                title: 'HR & Employee Management',
-                category: 'General & Primary HR',
-                location: 'HQ Fenimore St 22A (2.3km)',
-                categoryBgColor: const Color(0xFFFFE8D6),
-                categoryTextColor: const Color(0xFFC2410C),
-                imagePath: 'assets/images/hr_domain.png',
-                onTap: () => context.push('/app/leave'),
-              ),
-              _ModuleCard(
-                title: 'IT Helpdesk & Cloud Support',
-                category: 'IT & Data Infrastructure',
-                location: 'Tech Hub Center (1.5km)',
-                categoryBgColor: const Color(0xFFF3E8FF),
-                categoryTextColor: const Color(0xFF6B21A8),
-                imagePath: 'assets/images/it_domain.png',
-                onTap: () => context.push('/app/helpdesk'),
-              ),
-              _ModuleCard(
-                title: 'Warehouse & Inventory Hub',
-                category: 'Logistics & Supply Chain',
-                location: 'Logistics Bay South (3.1km)',
-                categoryBgColor: const Color(0xFFD1FAE5),
-                categoryTextColor: const Color(0xFF047857),
-                imagePath: 'assets/images/warehouse_domain.png',
-                onTap: () => context.push('/app/warehouse'),
-              ),
-              _ModuleCard(
-                title: 'Production & OEE Monitoring',
-                category: 'Plant & Manufacturing',
-                location: 'Advanced Fabrication (4.2km)',
-                categoryBgColor: const Color(0xFFFFEDD5),
-                categoryTextColor: const Color(0xFFC2410C),
-                imagePath: 'assets/images/production_domain.png',
-                onTap: () => context.push('/app/production'),
-              ),
-              _ModuleCard(
-                title: 'EHS Safety & Incident Audit',
-                category: 'Safety & Compliance',
-                location: 'Plant Safety Office (4.2km)',
-                categoryBgColor: const Color(0xFFFEE2E2),
-                categoryTextColor: const Color(0xFFB91C1C),
-                imagePath: 'assets/images/safety_domain.png',
-                onTap: () => context.push('/app/safety'),
+              // Responsive Domain Cards Grid
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth > 550;
+                  if (isWide) {
+                    return Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: DomainModuleCard(
+                                number: '01',
+                                title: 'HR & Employee Management',
+                                description: 'Manage employee profile, leave requests, attendance logs, and payslips.',
+                                buttonText: 'Explore',
+                                imagePath: 'assets/images/hr_domain.png',
+                                themeColor: const Color(0xFF2563EB),
+                                badgeBgColor: const Color(0xFFEFF6FF),
+                                onTap: () => context.push('/app/leave'),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: DomainModuleCard(
+                                number: '02',
+                                title: 'IT Helpdesk Support',
+                                description: 'Raise technical tickets, track network issues, and chat with live support.',
+                                buttonText: 'Get Support',
+                                imagePath: 'assets/images/it_domain.png',
+                                themeColor: const Color(0xFF7C3AED),
+                                badgeBgColor: const Color(0xFFF5F3FF),
+                                onTap: () => context.push('/app/helpdesk'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: DomainModuleCard(
+                                number: '03',
+                                title: 'Warehouse & Inventory',
+                                description: 'Real-time stock summary, barcode inventory scanner, and dispatch logs.',
+                                buttonText: 'View Inventory',
+                                imagePath: 'assets/images/warehouse_domain.png',
+                                themeColor: const Color(0xFF059669),
+                                badgeBgColor: const Color(0xFFECFDF5),
+                                onTap: () => context.push('/app/warehouse'),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: DomainModuleCard(
+                                number: '04',
+                                title: 'Production & OEE Monitoring',
+                                description: 'Overall Equipment Efficiency (85%), hourly production target vs output.',
+                                buttonText: 'View Reports',
+                                imagePath: 'assets/images/production_domain.png',
+                                themeColor: const Color(0xFFEA580C),
+                                badgeBgColor: const Color(0xFFFFF7ED),
+                                onTap: () => context.push('/app/production'),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        DomainModuleCard(
+                          number: '05',
+                          title: 'EHS Safety & Incident Audit',
+                          description: 'Report unsafe acts, near misses, equipment hazards, and OSHA compliance.',
+                          buttonText: 'Report Issue',
+                          imagePath: 'assets/images/safety_domain.png',
+                          themeColor: const Color(0xFFE11D48),
+                          badgeBgColor: const Color(0xFFFFF1F2),
+                          isFullWidth: true,
+                          onTap: () => context.push('/app/safety'),
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Column(
+                    children: [
+                      DomainModuleCard(
+                        number: '01',
+                        title: 'HR & Employee Management',
+                        description: 'Manage employee profile, leave requests, attendance logs, and payslips.',
+                        buttonText: 'Explore',
+                        imagePath: 'assets/images/hr_domain.png',
+                        themeColor: const Color(0xFF2563EB),
+                        badgeBgColor: const Color(0xFFEFF6FF),
+                        isFullWidth: true,
+                        onTap: () => context.push('/app/leave'),
+                      ),
+                      const SizedBox(height: 14),
+                      DomainModuleCard(
+                        number: '02',
+                        title: 'IT Helpdesk Support',
+                        description: 'Raise technical tickets, track network issues, and chat with live support.',
+                        buttonText: 'Get Support',
+                        imagePath: 'assets/images/it_domain.png',
+                        themeColor: const Color(0xFF7C3AED),
+                        badgeBgColor: const Color(0xFFF5F3FF),
+                        isFullWidth: true,
+                        onTap: () => context.push('/app/helpdesk'),
+                      ),
+                      const SizedBox(height: 14),
+                      DomainModuleCard(
+                        number: '03',
+                        title: 'Warehouse & Inventory',
+                        description: 'Real-time stock summary, barcode inventory scanner, and dispatch logs.',
+                        buttonText: 'View Inventory',
+                        imagePath: 'assets/images/warehouse_domain.png',
+                        themeColor: const Color(0xFF059669),
+                        badgeBgColor: const Color(0xFFECFDF5),
+                        isFullWidth: true,
+                        onTap: () => context.push('/app/warehouse'),
+                      ),
+                      const SizedBox(height: 14),
+                      DomainModuleCard(
+                        number: '04',
+                        title: 'Production & OEE Monitoring',
+                        description: 'Overall Equipment Efficiency (85%), hourly production target vs output.',
+                        buttonText: 'View Reports',
+                        imagePath: 'assets/images/production_domain.png',
+                        themeColor: const Color(0xFFEA580C),
+                        badgeBgColor: const Color(0xFFFFF7ED),
+                        isFullWidth: true,
+                        onTap: () => context.push('/app/production'),
+                      ),
+                      const SizedBox(height: 14),
+                      DomainModuleCard(
+                        number: '05',
+                        title: 'EHS Safety & Incident Audit',
+                        description: 'Report unsafe acts, near misses, equipment hazards, and OSHA compliance.',
+                        buttonText: 'Report Issue',
+                        imagePath: 'assets/images/safety_domain.png',
+                        themeColor: const Color(0xFFE11D48),
+                        badgeBgColor: const Color(0xFFFFF1F2),
+                        isFullWidth: true,
+                        onTap: () => context.push('/app/safety'),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 24),
             ],
@@ -385,150 +495,201 @@ class DashboardScreen extends StatelessWidget {
   }
 }
 
-class _ModuleCard extends StatelessWidget {
+class DomainModuleCard extends StatelessWidget {
+  final String number;
   final String title;
-  final String category;
-  final String location;
-  final Color categoryBgColor;
-  final Color categoryTextColor;
+  final String description;
+  final String buttonText;
   final String imagePath;
+  final Color themeColor;
+  final Color badgeBgColor;
   final VoidCallback onTap;
+  final bool isFullWidth;
 
-  const _ModuleCard({
+  const DomainModuleCard({
+    super.key,
+    required this.number,
     required this.title,
-    required this.category,
-    required this.location,
-    required this.categoryBgColor,
-    required this.categoryTextColor,
+    required this.description,
+    required this.buttonText,
     required this.imagePath,
+    required this.themeColor,
+    required this.badgeBgColor,
     required this.onTap,
+    this.isFullWidth = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 108,
-      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppColors.borderLight, width: 1),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.5),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x0C0F172A),
+            color: const Color(0xFF0F172A).withAlpha(10),
             blurRadius: 16,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(28),
-          child: Row(
-            children: [
-              // Left Image with Gradient Blend Transition
-              SizedBox(
-                width: 105,
-                height: 108,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    bottomLeft: Radius.circular(28),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(18.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Top Number Badge (e.g. 01, 02, 03, 04, 05)
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: badgeBgColor,
+                    shape: BoxShape.circle,
                   ),
-                  child: ShaderMask(
-                    shaderCallback: (rect) {
-                      return const LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [Colors.black, Colors.black, Colors.transparent],
-                        stops: [0.0, 0.65, 1.0],
-                      ).createShader(rect);
-                    },
-                    blendMode: BlendMode.dstIn,
-                    child: Image.asset(
-                      imagePath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          decoration: const BoxDecoration(
-                            gradient: AppColors.primaryGradient,
-                          ),
-                        );
-                      },
+                  alignment: Alignment.center,
+                  child: Text(
+                    number,
+                    style: TextStyle(
+                      color: themeColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 12),
 
-              // Right Info Content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Top Pill Category Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: categoryBgColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          category,
-                          style: TextStyle(
-                            color: categoryTextColor,
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
+                // Main Content: 3D Penguin Image + Title & Description
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 3D Penguin Graphic Avatar
+                    SizedBox(
+                      width: isFullWidth ? 100 : 80,
+                      height: isFullWidth ? 100 : 80,
+                      child: Image.asset(
+                        imagePath,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: themeColor.withAlpha(25),
+                            shape: BoxShape.circle,
                           ),
+                          child: Icon(Icons.domain_rounded, color: themeColor, size: 36),
                         ),
                       ),
-                      const SizedBox(height: 6),
+                    ),
+                    const SizedBox(width: 14),
 
-                      // Module Title
-                      Text(
-                        title,
-                        style: AppTypography.titleMedium.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-
-                      // Sub-location / Metadata Line
-                      Row(
+                    // Title & Description
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            size: 14,
-                            color: AppColors.textMuted,
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF0F172A),
+                              height: 1.25,
+                              letterSpacing: -0.2,
+                            ),
                           ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              location,
-                              style: AppTypography.bodySmall.copyWith(
-                                fontSize: 12,
-                                color: AppColors.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          const SizedBox(height: 6),
+                          Text(
+                            description,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                              color: Color(0xFF64748B),
+                              height: 1.35,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+
+                // Bottom Action Row: Pill Button + Circle Arrow Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Primary Action Pill Button
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                      decoration: BoxDecoration(
+                        color: themeColor,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: themeColor.withAlpha(76),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            buttonText,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Secondary Circular Arrow Button
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: themeColor.withAlpha(50),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(8),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        color: themeColor,
+                        size: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

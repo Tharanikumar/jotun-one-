@@ -8,6 +8,7 @@ class QuickAccessTile extends StatelessWidget {
   final Color iconColor;
   final Color backgroundColor;
   final VoidCallback onTap;
+  final String? imageAsset;
 
   const QuickAccessTile({
     super.key,
@@ -16,6 +17,7 @@ class QuickAccessTile extends StatelessWidget {
     required this.iconColor,
     required this.backgroundColor,
     required this.onTap,
+    this.imageAsset,
   });
 
   @override
@@ -26,21 +28,44 @@ class QuickAccessTile extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 60,
-            height: 60,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              color: backgroundColor,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.borderLight, width: 1),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x0A0F172A),
-                  blurRadius: 10,
-                  offset: Offset(0, 4),
+                  color: AppColors.primary.withAlpha(12),
+                  blurRadius: 14,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Icon(icon, color: iconColor, size: 26),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(19),
+              child: imageAsset != null
+                  ? Container(
+                      color: backgroundColor,
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        imageAsset!,
+                        width: 56,
+                        height: 56,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: backgroundColor,
+                            child: Icon(icon, color: iconColor, size: 28),
+                          );
+                        },
+                      ),
+                    )
+                  : Container(
+                      color: backgroundColor,
+                      child: Icon(icon, color: iconColor, size: 28),
+                    ),
+            ),
           ),
           const SizedBox(height: 8),
           Text(

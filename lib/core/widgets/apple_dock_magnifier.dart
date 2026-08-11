@@ -115,7 +115,7 @@ class _AppleDockMagnifierRowState extends State<AppleDockMagnifierRow>
                     duration: _hoverFractionalIndex == null
                         ? widget.animationDuration
                         : Duration.zero,
-                    curve: Curves.easeOutBack,
+                    curve: Curves.easeOutCubic,
                     transform: Matrix4.diagonal3Values(scale, scale, 1.0)
                       ..setTranslationRaw(0.0, isMagnified ? -6.0 : 0.0, 0.0),
                     transformAlignment: Alignment.bottomCenter,

@@ -27,7 +27,7 @@ class SafetyScreen extends StatelessWidget {
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
               childAspectRatio: 1.3,
-              children: [
+              children: const [
                 _SafetyCategoryTile(title: 'Unsafe Act', icon: Icons.warning_amber_rounded, color: AppColors.warning),
                 _SafetyCategoryTile(title: 'Unsafe Condition', icon: Icons.report_problem_rounded, color: AppColors.accentOrange),
                 _SafetyCategoryTile(title: 'Near Miss', icon: Icons.error_outline_rounded, color: AppColors.accentPurple),
@@ -37,9 +37,9 @@ class SafetyScreen extends StatelessWidget {
             const SizedBox(height: 28),
             Text('Recent Reports', style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
-            GlassCard(
+            const GlassCard(
               child: Column(
-                children: const [
+                children: [
                   ListTile(
                     leading: CircleAvatar(backgroundColor: Color(0x20F97316), child: Icon(Icons.warning, color: AppColors.accentOrange)),
                     title: Text('Near Miss in Chemical Storage'),

@@ -86,7 +86,7 @@ class WarehouseScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _StockLegend(label: 'In Stock', count: '942 (75%)', color: AppColors.success),
@@ -103,7 +103,7 @@ class WarehouseScreen extends StatelessWidget {
                         side: const BorderSide(color: AppColors.primary),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: Text('View Full Inventory →', style: TextStyle(color: AppColors.primary)),
+                      child: const Text('View Full Inventory →', style: TextStyle(color: AppColors.primary)),
                     ),
                   ),
                 ],

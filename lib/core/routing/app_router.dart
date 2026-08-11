@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/ai_assistant/presentation/ai_assistant_screen.dart';
+import '../../features/ai_assistant/presentation/voice_ai_assistant_screen.dart';
 import '../../features/authentication/presentation/login_screen.dart';
 import '../../features/authentication/presentation/onboarding_screen.dart';
 import '../../features/authentication/presentation/otp_screen.dart';
@@ -19,41 +20,15 @@ import '../../shared/shell/main_navigation_shell.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
-CustomTransitionPage _buildFadeSlidePage<T>({
-  required BuildContext context,
-  required GoRouterState state,
-  required Widget child,
-}) {
-  return CustomTransitionPage<T>(
-    key: state.pageKey,
-    child: child,
-    transitionDuration: const Duration(milliseconds: 480),
-    reverseTransitionDuration: const Duration(milliseconds: 450),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      final curvedAnimation = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeInOutCubic,
-        reverseCurve: Curves.easeInOutCubic,
-      );
-
-      return FadeTransition(
-        opacity: curvedAnimation,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.08),
-            end: Offset.zero,
-          ).animate(curvedAnimation),
-          child: child,
-        ),
-      );
-    },
-  );
-}
-
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/splash',
+  errorBuilder: (context, state) => const SplashScreen(),
   routes: [
+    GoRoute(
+      path: '/',
+      redirect: (context, state) => '/splash',
+    ),
     GoRoute(
       path: '/splash',
       builder: (context, state) => const SplashScreen(),
@@ -97,11 +72,7 @@ final GoRouter appRouter = GoRouter(
           routes: [
             GoRoute(
               path: '/app/notifications',
-              pageBuilder: (context, state) => _buildFadeSlidePage(
-                context: context,
-                state: state,
-                child: const NotificationsScreen(),
-              ),
+              builder: (context, state) => const NotificationsScreen(),
             ),
           ],
         ),
@@ -116,72 +87,42 @@ final GoRouter appRouter = GoRouter(
       ],
     ),
 
-    // Overview Card Shared Element Transition Routes
-    GoRoute(
-      path: '/app/tasks',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const TasksDetailScreen(),
-      ),
-    ),
-    GoRoute(
-      path: '/app/approvals',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const ApprovalsDetailScreen(),
-      ),
-    ),
-
     // Full Screen Feature Modules
     GoRoute(
+      path: '/app/tasks-detail',
+      builder: (context, state) => const TasksDetailScreen(),
+    ),
+    GoRoute(
+      path: '/app/approvals-detail',
+      builder: (context, state) => const ApprovalsDetailScreen(),
+    ),
+    GoRoute(
       path: '/app/ai-assistant',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const AiAssistantScreen(),
-      ),
+      builder: (context, state) => const AiAssistantScreen(),
+    ),
+    GoRoute(
+      path: '/app/voice-ai-assistant',
+      builder: (context, state) => const VoiceAiAssistantScreen(),
     ),
     GoRoute(
       path: '/app/helpdesk',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const HelpdeskScreen(),
-      ),
+      builder: (context, state) => const HelpdeskScreen(),
     ),
     GoRoute(
       path: '/app/leave',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const LeaveScreen(),
-      ),
+      builder: (context, state) => const LeaveScreen(),
     ),
     GoRoute(
       path: '/app/warehouse',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const WarehouseScreen(),
-      ),
+      builder: (context, state) => const WarehouseScreen(),
     ),
     GoRoute(
       path: '/app/production',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const ProductionScreen(),
-      ),
+      builder: (context, state) => const ProductionScreen(),
     ),
     GoRoute(
       path: '/app/safety',
-      pageBuilder: (context, state) => _buildFadeSlidePage(
-        context: context,
-        state: state,
-        child: const SafetyScreen(),
-      ),
+      builder: (context, state) => const SafetyScreen(),
     ),
   ],
 );

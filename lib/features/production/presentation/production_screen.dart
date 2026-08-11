@@ -40,7 +40,7 @@ class ProductionScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text('85%', style: AppTypography.displayLarge.copyWith(fontSize: 48, color: AppColors.primary)),
                   const SizedBox(height: 24),
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _StatColumn(label: 'Target', value: '1,200'),

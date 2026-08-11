@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
+import '../../core/widgets/enterprise_ai_orb.dart';
 
 class MainNavigationShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
@@ -12,6 +12,7 @@ class MainNavigationShell extends StatelessWidget {
   });
 
   void _onTap(int index) {
+    HapticFeedback.lightImpact();
     navigationShell.goBranch(
       index,
       initialLocation: index == navigationShell.currentIndex,
@@ -20,82 +21,95 @@ class MainNavigationShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = navigationShell.currentIndex;
+
     return Scaffold(
       body: navigationShell,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
-        height: 60,
-        width: 60,
-        margin: const EdgeInsets.only(top: 24),
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: AppColors.primaryGradient,
-          boxShadow: AppShadows.fabShadow,
-        ),
-        child: FloatingActionButton(
-          elevation: 0,
-          highlightElevation: 0,
-          backgroundColor: Colors.transparent,
-          onPressed: () {
-            context.push('/app/ai-assistant');
-          },
-          child: const Icon(Icons.add_rounded, size: 32, color: Colors.white),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
+      extendBody: true,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          height: 68,
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(40),
+            border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x140F172A),
+                blurRadius: 24,
+                spreadRadius: 0,
+                offset: Offset(0, 6),
+              ),
+              BoxShadow(
+                color: Color(0x0A000000),
+                blurRadius: 8,
+                offset: Offset(0, 2),
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: BottomAppBar(
-          shape: const CircularNotchedRectangle(),
-          notchMargin: 8.0,
-          color: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: SizedBox(
-            height: 65,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                  isSelected: navigationShell.currentIndex == 0,
-                  onTap: () => _onTap(0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _SlidingPillNavItem(
+                icon: Icons.home_outlined,
+                selectedIcon: Icons.home_rounded,
+                label: 'Home',
+                isSelected: currentIndex == 0,
+                onTap: () => _onTap(0),
+              ),
+              _SlidingPillNavItem(
+                icon: Icons.grid_view_outlined,
+                selectedIcon: Icons.grid_view_rounded,
+                label: 'Dashboard',
+                isSelected: currentIndex == 1,
+                onTap: () => _onTap(1),
+              ),
+
+              // Center Floating AI Assistant Trigger Orb (Vibrant Azure Blue Glow)
+              GestureDetector(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  context.push('/app/ai-assistant');
+                },
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF2563EB),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x4D2563EB),
+                        blurRadius: 14,
+                        spreadRadius: 1,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: EnterpriseAiOrb(size: 38, isAnimated: true),
+                  ),
                 ),
-                _NavItem(
-                  icon: Icons.grid_view_rounded,
-                  label: 'Dashboard',
-                  isSelected: navigationShell.currentIndex == 1,
-                  onTap: () => _onTap(1),
-                ),
-                const SizedBox(width: 48), // FAB cutout spacing
-                _NavItem(
-                  icon: Icons.notifications_rounded,
-                  label: 'Notifications',
-                  isSelected: navigationShell.currentIndex == 2,
-                  badgeCount: 3,
-                  onTap: () => _onTap(2),
-                ),
-                _NavItem(
-                  icon: Icons.person_rounded,
-                  label: 'Profile',
-                  isSelected: navigationShell.currentIndex == 3,
-                  onTap: () => _onTap(3),
-                ),
-              ],
-            ),
+              ),
+
+              _SlidingPillNavItem(
+                icon: Icons.notifications_none_rounded,
+                selectedIcon: Icons.notifications_rounded,
+                label: 'Alerts',
+                isSelected: currentIndex == 2,
+                badgeCount: 3,
+                onTap: () => _onTap(2),
+              ),
+              _SlidingPillNavItem(
+                icon: Icons.person_outline_rounded,
+                selectedIcon: Icons.person_rounded,
+                label: 'Profile',
+                isSelected: currentIndex == 3,
+                onTap: () => _onTap(3),
+              ),
+            ],
           ),
         ),
       ),
@@ -103,15 +117,17 @@ class MainNavigationShell extends StatelessWidget {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _SlidingPillNavItem extends StatelessWidget {
   final IconData icon;
+  final IconData selectedIcon;
   final String label;
   final bool isSelected;
   final int badgeCount;
   final VoidCallback onTap;
 
-  const _NavItem({
+  const _SlidingPillNavItem({
     required this.icon,
+    required this.selectedIcon,
     required this.label,
     required this.isSelected,
     this.badgeCount = 0,
@@ -120,31 +136,51 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? AppColors.primary : AppColors.textMuted;
-
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Column(
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOutCubic,
+        padding: EdgeInsets.symmetric(
+          horizontal: isSelected ? 18 : 12,
+          vertical: 10,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: isSelected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x332563EB),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Icon(icon, color: color, size: 24),
-                if (badgeCount > 0)
+                Icon(
+                  isSelected ? selectedIcon : icon,
+                  color: isSelected ? Colors.white : const Color(0xFF64748B),
+                  size: 22,
+                ),
+                if (!isSelected && badgeCount > 0)
                   Positioned(
-                    right: -6,
-                    top: -4,
+                    right: -5,
+                    top: -5,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(3),
                       decoration: const BoxDecoration(
-                        color: AppColors.error,
+                        color: Color(0xFFEF4444),
                         shape: BoxShape.circle,
                       ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      constraints: const BoxConstraints(minWidth: 15, minHeight: 15),
                       child: Text(
                         '$badgeCount',
                         style: const TextStyle(
@@ -158,18 +194,22 @@ class _NavItem extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.1,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 }
+

@@ -12,8 +12,39 @@ class PenguinAvatar extends StatelessWidget {
     this.size = 56.0,
   });
 
+  String get assetPath {
+    switch (type) {
+      case PenguinType.tasks:
+        return 'assets/images/penguin_tasks.png';
+      case PenguinType.approvals:
+        return 'assets/images/penguin_approvals.png';
+      case PenguinType.tickets:
+        return 'assets/images/penguin_tickets.png';
+      case PenguinType.alerts:
+        return 'assets/images/penguin_alerts.png';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: ClipOval(
+        child: Image.asset(
+          assetPath,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildVectorFallback();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVectorFallback() {
     Color itemColor;
     IconData itemIcon;
     Color circleBg;
@@ -123,7 +154,7 @@ class PenguinAvatar extends StatelessWidget {
               ),
             ),
           ),
-          // 6. Holding Item Graphic Badge (Ticket or Bell or Clipboard or Shield)
+          // 6. Holding Item Graphic Badge
           Positioned(
             bottom: 0,
             child: Container(

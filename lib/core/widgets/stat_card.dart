@@ -79,9 +79,20 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
     _scaleController.reverse();
   }
 
+  PenguinType _getPenguinType() {
+    if (widget.penguinType != null) return widget.penguinType!;
+    final lower = widget.title.toLowerCase();
+    if (lower.contains('task')) return PenguinType.tasks;
+    if (lower.contains('approval')) return PenguinType.approvals;
+    if (lower.contains('ticket')) return PenguinType.tickets;
+    if (lower.contains('alert')) return PenguinType.alerts;
+    return PenguinType.tasks;
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget avatarWidget;
+    final resolvedType = _getPenguinType();
     if (widget.imagePath != null) {
       avatarWidget = Container(
         width: 64,
@@ -99,7 +110,7 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) {
               return PenguinAvatar(
-                type: widget.penguinType ?? PenguinType.tasks,
+                type: resolvedType,
                 size: 58,
               );
             },
@@ -108,7 +119,7 @@ class _StatCardState extends State<StatCard> with SingleTickerProviderStateMixin
       );
     } else {
       avatarWidget = PenguinAvatar(
-        type: widget.penguinType ?? PenguinType.tickets,
+        type: resolvedType,
         size: 64,
       );
     }

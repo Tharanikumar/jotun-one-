@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../core/extensions/navigation_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/glass_card.dart';
 
 class ApprovalsDetailScreen extends StatefulWidget {
   const ApprovalsDetailScreen({super.key});
@@ -11,7 +10,8 @@ class ApprovalsDetailScreen extends StatefulWidget {
   State<ApprovalsDetailScreen> createState() => _ApprovalsDetailScreenState();
 }
 
-class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with SingleTickerProviderStateMixin {
+class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -19,32 +19,64 @@ class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with Sing
 
   final List<Map<String, dynamic>> _approvals = [
     {
-      'title': 'Leave Request - Casual (2 Days)',
+      'title': 'Leave Request – Casual (2 Days)',
       'requester': 'Rahul Verma • Production',
-      'date': '24 May 2024',
-      'icon': Icons.event_available_rounded,
-      'color': AppColors.accentMint,
+      'date': '10 May 2025',
+      'icon': Icons.calendar_today_outlined,
+      'iconColor': const Color(0xFF10B981),
+      'iconBg': const Color(0xFFD1FAE5),
+      'tagText': 'New',
+      'tagTextColor': const Color(0xFF10B981),
+      'tagBgColor': const Color(0xFFD1FAE5),
+      'approveText': 'Approve',
     },
     {
       'title': 'Overtime Pre-Approval (4 Hours)',
       'requester': 'Sarah Jenkins • Shift B',
-      'date': '24 May 2024',
+      'date': '10 May 2025',
       'icon': Icons.more_time_rounded,
-      'color': AppColors.accentOrange,
+      'iconColor': const Color(0xFFF97316),
+      'iconBg': const Color(0xFFFFEDD5),
+      'tagText': 'New',
+      'tagTextColor': const Color(0xFFF97316),
+      'tagBgColor': const Color(0xFFFFEDD5),
+      'approveText': 'Approve',
     },
     {
       'title': 'Safety Equipment Procurement',
       'requester': 'EHS Audit Team',
-      'date': '23 May 2024',
-      'icon': Icons.shield_rounded,
-      'color': AppColors.primary,
+      'date': '09 May 2025',
+      'icon': Icons.shield_outlined,
+      'iconColor': const Color(0xFF2563EB),
+      'iconBg': const Color(0xFFDBEAFE),
+      'tagText': 'New',
+      'tagTextColor': const Color(0xFF2563EB),
+      'tagBgColor': const Color(0xFFDBEAFE),
+      'approveText': 'Approve All',
     },
     {
-      'title': 'Travel Expense Claim (\$420)',
-      'requester': 'Alex Morgan • IT Dept',
-      'date': '22 May 2024',
-      'icon': Icons.receipt_rounded,
-      'color': AppColors.accentPurple,
+      'title': 'IT Access Request – John D.',
+      'requester': 'IT Department',
+      'date': '09 May 2025',
+      'icon': Icons.person_outline_rounded,
+      'iconColor': const Color(0xFF8B5CF6),
+      'iconBg': const Color(0xFFF3E8FF),
+      'tagText': 'New',
+      'tagTextColor': const Color(0xFF2563EB),
+      'tagBgColor': const Color(0xFFDBEAFE),
+      'approveText': 'Approve',
+    },
+    {
+      'title': 'Purchase Request – Raw Material',
+      'requester': 'Stores Department',
+      'date': '08 May 2025',
+      'icon': Icons.description_outlined,
+      'iconColor': const Color(0xFFD97706),
+      'iconBg': const Color(0xFFFEF3C7),
+      'tagText': 'New',
+      'tagTextColor': const Color(0xFFF97316),
+      'tagBgColor': const Color(0xFFFFEDD5),
+      'approveText': 'Approve',
     },
   ];
 
@@ -53,7 +85,7 @@ class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with Sing
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -62,7 +94,7 @@ class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with Sing
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.08),
+      begin: const Offset(0, 0.06),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
@@ -86,21 +118,75 @@ class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with Sing
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded, color: AppColors.textPrimary),
           onPressed: () => context.safePop(),
         ),
-        title: const Text('Approval Center'),
+        title: Text(
+          'Approval Center',
+          style: AppTypography.titleLarge.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(
+                  Icons.notifications_none_rounded,
+                  color: AppColors.textPrimary,
+                  size: 26,
+                ),
+                Positioned(
+                  right: 1,
+                  top: 1,
+                  child: Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFEF4444),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      floatingActionButton: ScaleTransition(
-        scale: _fadeAnimation,
-        child: FloatingActionButton.extended(
-          onPressed: () {},
-          backgroundColor: AppColors.accentMint,
-          icon: const Icon(Icons.done_all_rounded, color: Colors.white),
-          label: Text('Approve All', style: AppTypography.labelLarge.copyWith(color: Colors.white)),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.calendar_today_outlined, color: Colors.white, size: 20),
+              label: Text(
+                'Review All Requests',
+                style: AppTypography.titleMedium.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF10B981),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
       body: FadeTransition(
@@ -108,140 +194,150 @@ class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with Sing
         child: SlideTransition(
           position: _slideAnimation,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Shared Hero Icon Container
+                // Header Circle & Pending Count
                 Center(
                   child: Column(
                     children: [
-                      Hero(
-                        tag: 'hero_approvals',
-                        child: Material(
-                          color: Colors.transparent,
-                          child: Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: AppColors.accentMint.withAlpha(20),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.accentMint, width: 2),
-                            ),
-                            child: const Icon(
-                              Icons.verified_user_rounded,
-                              color: AppColors.accentMint,
-                              size: 40,
-                            ),
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFD1FAE5),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFFA7F3D0),
+                            width: 2,
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.verified_user_rounded,
+                            color: Color(0xFF10B981),
+                            size: 36,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       AnimatedBuilder(
                         animation: _counterAnimation,
                         builder: (context, child) {
+                          final val = _counterAnimation.value;
+                          final formattedVal = val < 10 ? '0$val' : '$val';
                           return Text(
-                            '0${_counterAnimation.value}',
+                            formattedVal,
                             style: AppTypography.displayLarge.copyWith(
-                              fontSize: 42,
-                              color: AppColors.accentMint,
+                              fontSize: 44,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF10B981),
                             ),
                           );
                         },
                       ),
+                      const SizedBox(height: 4),
                       Text(
                         'Pending Approvals',
-                        style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold),
+                        style: AppTypography.titleMedium.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Action required from management',
-                        style: AppTypography.bodySmall,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-                Text(
-                  'Approval Requests',
-                  style: AppTypography.titleMedium.copyWith(fontWeight: FontWeight.bold),
+                // 4 Stat Summary Cards Row
+                Row(
+                  children: [
+                    _buildStatCard(
+                      icon: Icons.hourglass_empty_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      bgColor: const Color(0xFFD1FAE5),
+                      value: '05',
+                      valueColor: const Color(0xFF10B981),
+                      label: 'Pending',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildStatCard(
+                      icon: Icons.check_circle_outline_rounded,
+                      iconColor: const Color(0xFF10B981),
+                      bgColor: const Color(0xFFD1FAE5),
+                      value: '18',
+                      valueColor: AppColors.textPrimary,
+                      label: 'Approved',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildStatCard(
+                      icon: Icons.cancel_outlined,
+                      iconColor: const Color(0xFFEF4444),
+                      bgColor: const Color(0xFFFEE2E2),
+                      value: '02',
+                      valueColor: const Color(0xFFEF4444),
+                      label: 'Rejected',
+                    ),
+                    const SizedBox(width: 8),
+                    _buildStatCard(
+                      icon: Icons.access_time_rounded,
+                      iconColor: const Color(0xFF2563EB),
+                      bgColor: const Color(0xFFDBEAFE),
+                      value: '07',
+                      valueColor: AppColors.textPrimary,
+                      label: 'Total Requests',
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
 
-                // Approval Item Cards
-                ...List.generate(_approvals.length, (index) {
-                  final approval = _approvals[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: GlassCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: (approval['color'] as Color).withAlpha(20),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Icon(
-                                  approval['icon'] as IconData,
-                                  color: approval['color'] as Color,
-                                  size: 22,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      approval['title'] as String,
-                                      style: AppTypography.titleMedium.copyWith(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      approval['requester'] as String,
-                                      style: AppTypography.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              OutlinedButton(
-                                onPressed: () {},
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AppColors.error,
-                                  side: const BorderSide(color: AppColors.error),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('Reject'),
-                              ),
-                              const SizedBox(width: 12),
-                              ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.accentMint,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                ),
-                                child: const Text('Approve'),
-                              ),
-                            ],
-                          ),
-                        ],
+                // Section Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Approval Requests',
+                      style: AppTypography.titleMedium.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                    TextButton(
+                      onPressed: () {},
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'View All',
+                        style: AppTypography.labelLarge.copyWith(
+                          color: const Color(0xFF10B981),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+
+                // List of Approval Cards
+                ...List.generate(_approvals.length, (index) {
+                  final item = _approvals[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: _buildApprovalCard(item),
                   );
                 }),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -249,4 +345,207 @@ class _ApprovalsDetailScreenState extends State<ApprovalsDetailScreen> with Sing
       ),
     );
   }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required Color iconColor,
+    required Color bgColor,
+    required String value,
+    required Color valueColor,
+    required String label,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x05000000),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: bgColor,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 18),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: valueColor,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.bodySmall.copyWith(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApprovalCard(Map<String, dynamic> item) {
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: item['iconBg'] as Color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  item['icon'] as IconData,
+                  color: item['iconColor'] as Color,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item['title'] as String,
+                      style: AppTypography.titleMedium.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      item['requester'] as String,
+                      style: AppTypography.bodySmall.copyWith(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 13,
+                          color: AppColors.textMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Requested on ${item['date']}',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontSize: 11,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: item['tagBgColor'] as Color,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  item['tagText'] as String,
+                  style: TextStyle(
+                    color: item['tagTextColor'] as Color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFEF4444),
+                  side: const BorderSide(color: Color(0xFFEF4444)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  minimumSize: const Size(90, 36),
+                ),
+                child: const Text(
+                  'Reject',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(width: 10),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                  minimumSize: const Size(90, 36),
+                ),
+                child: Text(
+                  item['approveText'] as String,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
+
